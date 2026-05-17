@@ -14,3 +14,8 @@ orchestrator:
 tools:
   ck_semantic_search: false
   ck_hybrid_search: false
+sync:
+  paths:
+    - .opencode
+    - .workbench/schemas
+    - README.md

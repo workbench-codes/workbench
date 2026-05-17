@@ -6,6 +6,7 @@ import { checkAuth, checkRepoRoot, getCurrentUserLogin } from "./utils/gh.ts"
 import { showMainMenu } from "./screens/mainMenu.ts"
 import { runInitFlow, executeInit, type InitState, type InitProgress } from "./commands/init.ts"
 import { executeInitialise, executeCreateRemote, validateInitialiseState, runInitialiseFlow, type InitialiseState } from "./commands/initialise.ts"
+import { executeSync } from "./commands/sync.ts"
 import { parseCliArgs, printHelp, type CliArgs } from "./args.ts"
 import { buildRepoFromUrl } from "./utils/repo.ts"
 import type { Repo } from "./screens/repoSelect.ts"
@@ -18,7 +19,9 @@ if (args.help || process.argv.length === 2) {
   process.exit(0)
 }
 
-if (args.init) {
+if (args.sync) {
+  void runSync(args)
+} else if (args.init) {
   if (args.noTui) {
     void runNonInteractiveInitCmd(args)
   } else {
@@ -28,6 +31,19 @@ if (args.init) {
   void runTuiMode()
 } else {
   void runNonInteractiveInit(args)
+}
+
+async function runSync(args: CliArgs): Promise<void> {
+  const result = await executeSync()
+
+  if (!result.success) {
+    if (result.error) {
+      console.error(result.error)
+    }
+    process.exit(1)
+  }
+
+  process.exit(0)
 }
 
 async function runTuiMode(): Promise<void> {

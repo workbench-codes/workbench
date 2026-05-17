@@ -110,6 +110,34 @@
         "ck_hybrid_search": true
       }
     },
+    "sync": {
+      "description": "Controls which files and directories are synced from the source workbench",
+      "type": "object",
+      "properties": {
+        "paths": {
+          "description": "Paths to sync from the source workbench (directories are merged, files are overwritten)",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1,
+          "default": [
+            ".opencode",
+            ".workbench/schemas",
+            "README.md"
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "default": {
+        "paths": [
+          ".opencode",
+          ".workbench/schemas",
+          "README.md"
+        ]
+      }
+    },
     "ticketer": {
       "description": "Settings for the ticketer workflow agent behavior",
       "type": "object",
