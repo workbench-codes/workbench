@@ -1,5 +1,5 @@
 # yaml-language-server: $schema=./schemas/settings.json
-project_management: linear
+project_management: github-issues
 orchestrator:
   strategy:
     name: minimum-changes-expandability
