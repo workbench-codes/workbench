@@ -14,6 +14,7 @@ export interface CliArgs {
   remote: boolean
   name: string
   noTui: boolean
+  sync: boolean
 }
 
 export function parseCliArgs(): CliArgs {
@@ -32,6 +33,7 @@ export function parseCliArgs(): CliArgs {
       remote: { type: "boolean", default: false },
       name: { type: "string", default: "workbench" },
       "no-tui": { type: "boolean", default: false },
+      sync: { type: "boolean", default: false },
     },
     strict: true,
     allowPositionals: false,
@@ -51,6 +53,7 @@ export function parseCliArgs(): CliArgs {
     remote: values.remote as boolean,
     name: values.name as string,
     noTui: values["no-tui"] as boolean,
+    sync: values.sync as boolean,
   }
 }
 
@@ -62,6 +65,7 @@ USAGE:
   workbench --init --no-tui [options]
   workbench --org <name> --code-repository <url> [options]
   workbench --tui
+  workbench --sync
   workbench --help
 
 OPTIONS:
@@ -76,6 +80,7 @@ OPTIONS:
   --code-branch <name>            Branch for all code repositories (default: main)
   --resource-branch <name>        Branch for all resource repositories (default: main)
   --index <on|off>                Run indexing after init (default: on)
+  --sync                          Sync workbench files from the source repository
   --tui                           Launch interactive TUI mode
   --help                          Display this help message
 
@@ -87,5 +92,6 @@ EXAMPLES:
   workbench --init --no-tui --name my-project --remote --org myorg --code-repository https://github.com/myorg/api
   workbench --org myorg --code-repository https://github.com/myorg/backend
   workbench --tui
+  workbench --sync
 `)
 }

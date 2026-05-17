@@ -5,7 +5,7 @@
     "": {
       "name": "workbench-cli",
       "dependencies": {
-        "@opentui/core": "^0.1.90",
+        "@opentui/core": "0.1.90",
         "js-yaml": "^4.1.0",
       },
       "devDependencies": {

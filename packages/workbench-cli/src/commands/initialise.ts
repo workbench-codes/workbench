@@ -8,6 +8,7 @@ import { showExecutingScreen } from "../screens/executing.ts"
 import { showSourceInput } from "../screens/initSourceInput.ts"
 import { showRemotePrompt } from "../screens/initRemotePrompt.ts"
 import { showRemoteNameInput } from "../screens/initRemoteNameInput.ts"
+import { writeSourceConfig } from "../utils/config.ts"
 import type { InitProgress } from "./init.ts"
 import type { CliRenderer } from "@opentui/core"
 import type { CliArgs } from "../args.ts"
@@ -143,6 +144,9 @@ export async function executeInitialise(
   if (!reinitResult.success) {
     return reinitResult
   }
+
+  // Persist source info so --sync knows where to fetch from
+  writeSourceConfig(state.source, "main")
 
   return result
 }
