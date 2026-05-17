@@ -39,10 +39,10 @@ Detect pathway context:
 
 Load PM configuration:
 - Read `.workbench/settings.yml` to determine the configured project management tool.
-- The PM tool is `linear` (currently the only supported value).
-- Use the Linear MCP tools available globally: `linear_get_issue`, `linear_save_issue`, `linear_get_document`, and `linear_save_document`.
-- Follow the status guard protocol: validate `status-ticket` before proceeding.
-- Follow the label preservation protocol when updating status.
+- Load the corresponding PM skill: `skill({ name: '<value>' })`.
+- Use the PM skill's tool mapping table for all issue and document operations.
+- Follow the status guard protocol from the loaded PM skill.
+- Follow the label preservation protocol from the loaded PM skill.
 
 ## Implementation Philosophy
 
@@ -108,7 +108,7 @@ If the plan or execution notes show completed work, trust completed phases and p
 5. Verify each phase with the success criteria checks and fix issues before proceeding.
 6. Maintain execution notes throughout the run, including phases completed, deviations, discoveries, and decisions.
 7. Handle mismatches by presenting the issue clearly and asking for guidance.
-8. At the end, create a Linear document titled `Execution Notes: {issue_id}` with the full markdown content.
+8. At the end, create a PM document titled `Execution Notes: {issue_id}` with the full markdown content.
 9. Update the issue status to `implemented` following the label preservation protocol.
 
 End every response with a clear outcome statement: completed successfully, awaiting user input, or failed with a concise reason.

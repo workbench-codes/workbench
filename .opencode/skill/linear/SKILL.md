@@ -26,6 +26,11 @@ All project management operations use Linear MCP tools. This skill maps generic 
 | List documents for an issue | Retrieve the issue — the response includes an associated `documents` array with `id` and `title` for each |
 | Retrieve a document | `linear_get_document({ id: "{document_id}" })` |
 | Create a document | `linear_save_document({ issue: "{issue_id}", title: "{title}", content: "{content}" })` |
+| Create a sub-issue (no `id`) | `linear_save_issue({ parentId: "{parent_issue_id}", title: "{title}", labels: ["{label}"], priority: {priority}, team: "{team_key}" })` |
+| Set issue dependency | `linear_save_issue({ id: "{issue_id}", blockedBy: ["{blocker_issue_id}"] })` |
+| Create a label | `linear_create_issue_label({ name: "{label_name}" })` |
+| List labels | `linear_list_issue_labels({ name: "{label_name}" })` |
+| List sub-issues | Retrieve the parent issue with relations — the response includes a `children` array with `id` and `title` for each |
 
 ## Status Management
 
@@ -34,8 +39,9 @@ All project management operations use Linear MCP tools. This skill maps generic 
 The status lifecycle follows this order:
 
 `open → researched → planned → implemented → reviewed`
+`decomposed` (terminal — epic has been split; workflow does not continue on this issue)
 
-These values correspond to the `status-ticket` label group in Linear.
+These values correspond to the `status-ticket` label group in Linear. They are always written in lowercase.
 
 ### Status Guard
 
@@ -44,7 +50,7 @@ Before performing a workflow operation, verify the issue has the expected status
 1. Retrieve the issue using the issue ID
 2. Inspect the `labels[]` array for the `status-ticket` group value and validate state:
    - no `status-ticket` value (`none`) is valid start state
-   - exactly one canonical value is valid: `open`, `researched`, `planned`, `implemented`, `reviewed`
+   - exactly one canonical value is valid: `open`, `researched`, `planned`, `implemented`, `reviewed`, `decomposed`
    - multiple `status-ticket` values are invalid and must stop immediately
    - any non-canonical `status-ticket` value is invalid and must stop immediately
 3. If validation fails, stop immediately with:
@@ -52,7 +58,7 @@ Before performing a workflow operation, verify the issue has the expected status
 ```text
 Status-ticket validation failed
 - Found: <values>
-- Allowed: open, researched, planned, implemented, reviewed
+- Allowed: open, researched, planned, implemented, reviewed, decomposed
 - Reason: multiple values | invalid value
 - Remediation: keep exactly one allowed value, or remove all to reset to start state
 ```
@@ -75,12 +81,12 @@ When updating the issue status:
 ```text
 Status-ticket validation failed
 - Found: <values>
-- Allowed: open, researched, planned, implemented, reviewed
+- Allowed: open, researched, planned, implemented, reviewed, decomposed
 - Reason: multiple values | invalid value
 - Remediation: keep exactly one allowed value, or remove all to reset to start state
 ```
 
-4. On valid pre-state, remove any existing `status-ticket` group value (`open`, `researched`, `planned`, `implemented`, `reviewed`)
+4. On valid pre-state, remove any existing `status-ticket` group value (`open`, `researched`, `planned`, `implemented`, `reviewed`, `decomposed`)
 5. Append the new status value to the labels array
 6. Update the issue: `linear_save_issue({ id: "{issue_id}", labels: ["{preserved_label_1}", "{preserved_label_2}", "{new_status}"] })`
 
@@ -89,6 +95,18 @@ Status-ticket validation failed
 - Keep `"Improvement"` (non-status label)
 - Append `"planned"`
 - Result: `linear_save_issue({ id: "PAP-7018", labels: ["Improvement", "planned"] })`
+
+### Epic Label And Decomposed Status
+
+The `Epic` label is a **type label** (like `Feature` or `Improvement`), NOT a `status-ticket` label. It is a permanent marker of the issue's nature as an epic — never removed by status transitions.
+
+The `decomposed` label is a **status-ticket label** — it is the terminal state of a decomposed epic. Once an issue reaches `decomposed`, no further workflow steps apply.
+
+**Label preservation interaction**: The label preservation protocol naturally protects `Epic` because it only removes `status-ticket` group values. `Epic` is a type label and is never part of the removal set. Do not add `Epic` to the removal list.
+
+**Creating labels if absent**: Before applying `decomposed` or `Epic`, verify the label exists in the workspace. Use `linear_list_issue_labels` with `name` to check. If absent, create via `linear_create_issue_label({ name: "{label_name}" })`.
+
+**Sub-issue creation pattern**: When creating sub-issues, never include a `status-ticket` label. Sub-issues start with no workflow status — the user begins the workflow on each individually via `/implement`. The `parentId` field links the sub-issue to its epic parent.
 
 ## Document Operations
 

@@ -43,18 +43,19 @@ You are an orchestration agent for the end-to-end issue workflow. You run the ne
    - Use the implement skill mapping to determine the next workflow step and agent.
    - Validate `status-ticket` state before dispatch:
      - no `status-ticket` value (`none`) is valid start state
-     - exactly one canonical value is valid: `open`, `researched`, `planned`, `implemented`, `reviewed`
+     - exactly one canonical value is valid: `open`, `researched`, `planned`, `implemented`, `reviewed`, `decomposed`
      - multiple or invalid values are malformed and must hard-stop before dispatch
    - If malformed, fail immediately with:
 
 ```text
 Status-ticket validation failed
 - Found: <values>
-- Allowed: open, researched, planned, implemented, reviewed
+- Allowed: open, researched, planned, implemented, reviewed, decomposed
 - Reason: multiple values | invalid value
 - Remediation: keep exactly one allowed value, or remove all to reset to start state
 ```
 
+   - If status is `decomposed`, stop immediately with a helpful message listing sub-issues and directing the user to run `/implement` on individual sub-issues.
    - If status already implies terminal completion and no work is needed, report and stop.
    - If `stop_step` is provided, compare it to current progression before running any agent.
    - If requested `stop_step` is earlier than current progression, fail fast with:
@@ -112,19 +113,19 @@ Stop-step validation failed
    - Keep updates concise and actionable.
 
 10. **Emit final summary**
-   - At run end, provide a structured summary including:
-     - `Report Version: v1`
-     - `Report Status: Complete` for full completion, otherwise `Report Status: Partial`
-     - `Final Stop Reason: <reason>` for partial runs
-     - Issue ID
-     - Start status and computed entry step
-     - Steps attempted in order
-     - Outcome per step (`success`/`blocked`/`failed`)
-     - Per-step summary of what happened, questions asked, answers provided, artifacts created, and runtime if known
-     - Workflow outcome: completed or first failure/blocker
-   - Create a new Linear document on every orchestrator run using `linear_save_document` without `id`:
-     - Title: `Implementation Report: <ISSUE_ID> - YYYY-MM-DDTHH-MM-SSZ`
-     - Content: full markdown report generated from this summary
+    - At run end, provide a structured summary including:
+      - `Report Version: v1`
+      - `Report Status: Complete` for full completion, otherwise `Report Status: Partial`
+      - `Final Stop Reason: <reason>` for partial runs
+      - Issue ID
+      - Start status and computed entry step
+      - Steps attempted in order
+      - Outcome per step (`success`/`blocked`/`failed`)
+      - Per-step summary of what happened, questions asked, answers provided, artifacts created, and runtime if known
+      - Workflow outcome: completed or first failure/blocker
+    - Create a new PM document on every orchestrator run (use the PM skill's create document operation without `id`):
+      - Title: `Implementation Report: <ISSUE_ID> - YYYY-MM-DDTHH-MM-SSZ`
+      - Content: full markdown report generated from this summary
 
 ## Important Notes
 

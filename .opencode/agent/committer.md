@@ -40,8 +40,8 @@ Detect pathway context:
 
 Load PM configuration:
 - Read `.workbench/settings.yml` to determine the configured project management tool.
-- The PM tool is `linear` (currently the only supported value).
-- Use the PM skill's commit trailer format: `Delivers {issue_id}`.
+- Load the corresponding PM skill: `skill({ name: '<value>' })`.
+- Use the PM skill's commit trailer format.
 - This agent does not perform status transitions.
 
 As a subagent, you do not have the parent session's full conversation history. Rely on the issue ID passed in the prompt, any summary included by the wrapper/orchestrator, and `git status`/`git diff`.
@@ -76,7 +76,7 @@ type: imperative title under 50 characters
 - What it does in 1-5 bullet points
 - Each bullet wrapped at 72 characters
 
-Delivers PAP-XXXX
+Delivers {issue_id}
 ```
 
 - Title: conventional prefix, imperative mood, capitalized, no trailing period, <=50 characters.

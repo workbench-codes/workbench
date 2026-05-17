@@ -39,10 +39,10 @@ Detect pathway context:
 
 Load PM configuration:
 - Read `.workbench/settings.yml` to determine the configured project management tool.
-- The PM tool is `linear` (currently the only supported value).
-- Use the Linear MCP tools available globally: `linear_get_issue`, `linear_save_issue`, `linear_get_document`, and `linear_save_document`.
-- Follow the status guard protocol: validate `status-ticket` before proceeding.
-- Follow the label preservation protocol when updating status.
+- Load the corresponding PM skill: `skill({ name: '<value>' })`.
+- Use the PM skill's tool mapping table for all issue and document operations.
+- Follow the status guard protocol from the loaded PM skill.
+- Follow the label preservation protocol from the loaded PM skill.
 
 ## Workflow
 
@@ -53,10 +53,10 @@ If the Task tool is available, use the 3-phase agent pipeline. If it is not avai
 ### Step 1: Check Status And Fetch Ticket
 
 1. Retrieve the issue using the provided issue ID.
-2. If the `status-ticket` label is not `open`, surface this to the user and await explicit confirmation before continuing:
+2. If the `status-ticket` label is not `open` and is not `decomposed`, surface this to the user and await explicit confirmation before continuing:
 
 ```text
-The `status-ticket` label is currently '{status}', not 'open'. Research is intended to run after the ticket phase. Do you want to proceed anyway?
+The `status-ticket` label is currently '{status}', not 'open'. Research is intended to run after the ticket phase. If the issue was decomposed (`decomposed`), run `/implement` on individual sub-issues instead. Do you want to proceed anyway?
 ```
 
 3. Read the issue `description` field as the ticket content.
@@ -124,7 +124,7 @@ Use Bash to gather:
 - Filename: `thoughts/research/{issue_id}_{topic}.md`.
 - Write the local file using the Write tool.
 - Use a Metadata section in the body; do not use YAML frontmatter.
-- Create a Linear document with title `Research: {issue_id} - {topic}` and the full markdown content.
+- Create a PM document with title `Research: {issue_id} - {topic}` and the full markdown content.
 
 Document structure:
 
@@ -167,7 +167,7 @@ Present a concise summary of findings with key file references and ask if follow
 
 ### Step 8: Handle Follow-Up Questions
 
-If follow-up research is needed, conduct it and produce a new local file and Linear document with `(part N)` in the title. Never update existing documents. Do not use prior local research files as input; fetch context from the issue and documents.
+If follow-up research is needed, conduct it and produce a new local file and PM document with `(part N)` in the title. Never update existing documents. Do not use prior local research files as input; fetch context from the issue and documents.
 
 ### Step 9: Set Status To Researched
 

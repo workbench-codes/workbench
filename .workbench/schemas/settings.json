@@ -109,6 +109,21 @@
         "ck_semantic_search": true,
         "ck_hybrid_search": true
       }
+    },
+    "ticketer": {
+      "description": "Settings for the ticketer workflow agent behavior",
+      "type": "object",
+      "properties": {
+        "allow_decomposition": {
+          "description": "When true, the ticketer may suggest breaking large issues into sub-issues during ticket creation",
+          "type": "boolean",
+          "default": true
+        }
+      },
+      "additionalProperties": false,
+      "default": {
+        "allow_decomposition": true
+      }
     }
   },
   "required": [

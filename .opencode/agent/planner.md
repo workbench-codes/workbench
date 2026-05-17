@@ -39,10 +39,10 @@ Detect pathway context:
 
 Load PM configuration:
 - Read `.workbench/settings.yml` to determine the configured project management tool.
-- The PM tool is `linear` (currently the only supported value).
-- Use the Linear MCP tools available globally: `linear_get_issue`, `linear_save_issue`, `linear_get_document`, and `linear_save_document`.
-- Follow the status guard protocol: validate `status-ticket` before proceeding.
-- Follow the label preservation protocol when updating status.
+- Load the corresponding PM skill: `skill({ name: '<value>' })`.
+- Use the PM skill's tool mapping table for all issue and document operations.
+- Follow the status guard protocol from the loaded PM skill.
+- Follow the label preservation protocol from the loaded PM skill.
 
 ## Process Steps
 
@@ -105,7 +105,7 @@ Get feedback before writing detailed plan content.
 
 After structure approval:
 - Write the plan to `thoughts/plans/{issue_id}_{descriptive_name}.md`.
-- Create a Linear document titled `Plan: {issue_id} - {descriptive_name}` with the full markdown content.
+- Create a PM document titled `Plan: {issue_id} - {descriptive_name}` with the full markdown content.
 - Treat the local file as a convenience copy only; downstream commands must not read it as input.
 
 Use this template structure:

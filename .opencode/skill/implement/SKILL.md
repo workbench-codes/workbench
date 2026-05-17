@@ -29,6 +29,7 @@ Use the issue's `status-ticket` label to decide where to start.
 | Current status-ticket value | Next step | Next agent to spawn |
 |---|---|---|
 | none (no status label) | `ticket` | `ticketer` |
+| `decomposed` | — | None. Hard-stop. Issue has been split into sub-issues. |
 | `open` | `research` | `researcher` |
 | `researched` | `plan` | `planner` |
 | `planned` | `execute` | `executer` |
@@ -38,9 +39,10 @@ Use the issue's `status-ticket` label to decide where to start.
 ### Notes
 
 - `commit` is terminal for this orchestrator flow.
+- `decomposed` is terminal — the issue has been split into sub-issues and no further workflow steps apply. Run `/implement` on individual sub-issues instead.
 - `status-ticket` state must be validated before dispatch:
   - `none` (no `status-ticket`) is valid and maps to `ticket`
-  - exactly one canonical value is valid: `open`, `researched`, `planned`, `implemented`, `reviewed`
+  - exactly one canonical value is valid: `open`, `researched`, `planned`, `implemented`, `reviewed`, `decomposed`
   - multiple values or invalid values are malformed and must hard-stop before dispatch
 - Non-status labels must always be preserved by agents that update status.
 
@@ -89,6 +91,7 @@ Stop immediately when any of the following occurs:
 
 - A workflow agent returns `failed`
 - A blocking question is escalated and cannot be resolved
+- `status-ticket` is `decomposed` (terminal — issue has been split into sub-issues; run `/implement` on individual sub-issues instead)
 - `status-ticket` validation fails (multiple values or invalid value)
 - Stop-step validation fails because requested step is earlier than current progression
 
@@ -105,7 +108,7 @@ A successful orchestrator run includes:
 - Partial runs include `Final Stop Reason: <reason>`
 - Final summary includes per-step outcomes and summaries
 - Final summary includes notable artifacts created by agents
-- A new Linear document is created on every run with title `Implementation Report: <ISSUE_ID> - YYYY-MM-DDTHH-MM-SSZ`
+- A new PM document is created on every run with title `Implementation Report: <ISSUE_ID> - YYYY-MM-DDTHH-MM-SSZ`
 - Document content is the full human-readable markdown implementation report
 
 ## Maintenance Guidance

@@ -33,17 +33,17 @@ Detect pathway context:
 - Check if `.workbench/config.yaml` exists in the repository root via Bash.
 - If present: pathway_mode = "configured" (Pathway 2).
 - If absent: pathway_mode = "workbench" (Pathway 1).
-- Read `.workbench/settings.yml` and resolve `tools.ck_semantic_search` and `tools.ck_hybrid_search`. Treat a missing file, missing `tools` section, or missing individual key as `true` for that key.
+- Read `.workbench/settings.yml` and resolve `tools.ck_semantic_search`, `tools.ck_hybrid_search`, and `ticketer.allow_decomposition`. Treat a missing file, missing section, or missing individual key as `true` for that key.
 - Run `which ck` via Bash. If found, run `ck --status` to verify index readiness. Any failure means ck is not installed/ready — warn the user and continue (graceful degradation).
 - Resolve per-tool availability as the logical AND of the setting and the system check: `ck_semantic_search_available` and `ck_hybrid_search_available`.
-- Store `pathway_mode`, `ck_semantic_search_available`, and `ck_hybrid_search_available` for downstream use and ticket metadata.
+- Store `pathway_mode`, `ck_semantic_search_available`, `ck_hybrid_search_available`, and `allow_decomposition` for downstream use and ticket metadata.
 
 Load PM configuration:
 - Read `.workbench/settings.yml` to determine the configured project management tool.
-- The PM tool is `linear` (currently the only supported value).
-- Use the Linear MCP tools available globally: `linear_get_issue`, `linear_save_issue`, `linear_get_document`, and `linear_save_document`.
-- Follow the status guard protocol when validating `status-ticket` labels.
-- Follow the label preservation protocol when updating status: preserve non-status labels, remove old status labels, append the new canonical status.
+- Load the corresponding PM skill: `skill({ name: '<value>' })`.
+- Use the PM skill's tool mapping table for all issue, document, and label operations.
+- Follow the status guard protocol from the loaded PM skill.
+- Follow the label preservation protocol from the loaded PM skill.
 
 ## Task Context
 
@@ -55,7 +55,9 @@ If you ask questions, include them naturally in your output, clearly state that 
 
 ### Step 1: Read The Issue
 
-1. Retrieve the issue using the provided issue ID to fetch the issue title, description, current labels, and parent if available.
+1. Retrieve the issue using the provided issue ID to fetch the issue title, description, current labels, parent, and children.
+   1a. If the issue already has child sub-issues, surface a warning: "This issue already has {N} child sub-issues. Continuing with decomposition may create a confusing hierarchy. Proceed anyway?" Wait for explicit confirmation before continuing.
+   1b. If the issue already has the `Epic` type label, surface a warning: "This issue already has the `Epic` label — it may have been previously decomposed. Proceed anyway?" Wait for explicit confirmation before continuing.
 2. If the issue has a parent, retrieve the parent issue to read the parent description for broader context. Do not duplicate parent-level content in the ticket; use it only to understand wider scope.
 3. Use the fetched content as the starting context for the Q&A. Treat the existing issue description as prior context, not the final ticket.
 4. Complete startup bootstrapping and store pathway metadata.
@@ -98,6 +100,145 @@ Stop exploration only when:
 - The main functional areas and edge cases have been explored.
 - The user indicates satisfaction with the current scope.
 - A minimum of 2-3 rounds completed with clear scope boundaries established.
+
+### Step 3.5: Atomicity Evaluation & Decomposition
+
+If `allow_decomposition` is `false`, skip this step entirely and proceed to Step 4.
+
+#### 3.5.1 Atomicity Evaluation
+
+After scope exploration is complete, evaluate whether the issue is a decomposition candidate. Criteria:
+
+* Spans multiple distinct functional areas (e.g., UI + backend + infrastructure changes that don't share implementation logic)
+* Touches unrelated architectural layers or components that can be built/tested independently
+* Would produce a plan too large for incremental execution (more than ~5 distinct implementation phases)
+* Reveals separable concerns with different ownership or risk profiles
+
+If the issue is narrow, single-concern, or tightly coupled, skip decomposition and proceed to Step 4.
+
+#### 3.5.2 Decomposition Proposal
+
+Present a structured decomposition proposal before making any writes to the PM tool. The proposal must include:
+
+1. **Rationale**: Why this issue is too broad — which criteria from 3.5.1 triggered the assessment.
+2. **Named sub-issues**: For each sub-issue, provide:
+   * Title (concise, descriptive, action-oriented)
+   * One-sentence scope (what this sub-issue covers)
+   * Type label: `Feature` for net-new capabilities, `Improvement` for enhancements to existing
+   * Priority (default: inherit parent's priority unless a sub-issue is clearly more/less urgent)
+3. **Dependency ordering**: Which sub-issues depend on others, with plain-language explanation. Use a simple graph description:
+   * "Sub-issue B depends on Sub-issue A (needs A's output as foundation)"
+   * "Sub-issues C and D are parallel (independent)"
+4. **Explicit approval prompt** — a numbered list of options:
+   * 1: Approve — proceed with decomposition as proposed
+   * 2: Edit — request specific amendments (titles, splits, merges, reordering)
+   * 3: Reject — fall back to standard single-ticket flow
+
+Do NOT create any issues, documents, or labels via the PM tool at this stage. The proposal is read-only.
+
+#### 3.5.3 Proposal Iteration (approve/edit/reject)
+
+* **On approval**: Proceed to 3.5.4 (execute decomposition).
+* **On edit**: Incorporate the user's amendments and re-present the proposal. Allow up to 3 edit rounds total. On the 3rd round, the prompt must force a binary choice: "You've made 3 rounds of edits. Please approve or reject the proposal."
+* **On rejection**: Fall back to standard single-ticket flow. Document the decision: add a "Decomposition Considered" section to the ticket (inserted into Step 5 output) noting that decomposition was evaluated but rejected by the user. Proceed to Step 4.
+
+#### 3.5.4 Execute Decomposition (on approval)
+
+##### 3.5.4.1 Prepare labels
+
+1. Check if `decomposed` label exists: use the PM skill's list labels operation with `name: "decomposed"`.
+2. If not found, create it: use the PM skill's create a label operation with `{ name: "decomposed" }`. Retry up to 3 times (500ms / 1s / 2s backoff). On failure after all retries, **hard-stop** — `decomposed` is a workflow-integrity label.
+3. Check if `Epic` label exists: use the PM skill's list labels operation with `name: "Epic"`.
+4. If not found, create it: use the PM skill's create a label operation with `{ name: "Epic" }`. Retry up to 3 times. On failure, emit a **soft warning** — continue with decomposition (the label can be added manually later).
+
+##### 3.5.4.2 Create sub-issues
+
+For each sub-issue, in dependency order (unblocked first, then sequentially for dependent ones):
+
+Use the PM skill's create a sub-issue operation:
+
+```
+{
+  title: "{sub_issue_title}",
+  parentId: "{parent_issue_id}",
+  labels: ["{Feature|Improvement}"],
+  priority: {inherited_priority},
+  team: "{parent_team_key}"
+}
+```
+
+Rules:
+
+* Do NOT include any `status-ticket` label on sub-issues.
+* Do NOT set `description` on sub-issues (sub-issues are bare — the ticketer writes the description when the user runs `/implement` on the sub-issue).
+* Do NOT set `assignee`, `dueDate`, or `estimate`.
+* Retry each failed creation up to 3 times with 500ms / 1s / 2s backoff.
+* Track created sub-issue IDs and titles.
+
+If ALL sub-issue creations fail after retries: **Fall back to standard single-ticket flow** — do NOT apply `decomposed`/`Epic` labels. Proceed to Step 4.
+
+If SOME but not all fail: Report partial results. Continue with dependency setting for successful sub-issues only. Skip relations referencing failed sub-issues.
+
+##### 3.5.4.3 Cycle detection and dependency setting
+
+Before applying `blockedBy` relations, run DFS-based cycle detection:
+
+1. Build a directed adjacency list: each edge A→B means "sub-issue B depends on A."
+2. For each node, run DFS tracking visited nodes in the current path.
+3. If a back-edge is found, a cycle exists — surface an error and **do not apply any relations**.
+
+If no cycle is detected, apply relations using `blockedBy` on the dependent sub-issue only (the PM tool maintains bidirectionality). Retry failed relation-setting calls up to 3 times; on failure, emit a warning but continue.
+
+##### 3.5.4.4 Preserve original PRD
+
+Create a PM document: use the PM skill's create a document operation with title `Original PRD: {ISSUE_ID}` and the original description content.
+
+##### 3.5.4.5 Rewrite parent as epic
+
+Overwrite the parent issue description with the epic format:
+
+```markdown
+# Epic: {Original Title}
+
+## Purpose
+
+{Brief statement of what this epic achieves — derived from the original issue description.}
+
+## Scope
+
+{Boundaries of the epic — what is in and out of scope across all sub-issues.}
+
+## Sub-Issues
+
+| # | Title | Scope | Type | Priority | Dependencies |
+|---|-------|-------|------|----------|--------------|
+| 1 | {Title} | {One-sentence scope} | Feature/Improvement | High/Medium/Low | None |
+| 2 | {Title} | {One-sentence scope} | Feature/Improvement | High/Medium/Low | #1 |
+| ... |
+
+## Implementation Order
+
+{Recommended order with rationale — which sub-issues to start first, which are parallel, which are sequential.}
+
+## Notes
+
+{Any additional context, constraints, or decisions relevant to implementers.}
+```
+
+Use the PM skill's overwrite issue description operation with the epic content.
+
+##### 3.5.4.6 Apply labels to parent
+
+Apply both `decomposed` and `Epic` labels following the label preservation protocol: preserve non-status labels, remove existing status-ticket values, append `Epic` and `decomposed`.
+
+##### 3.5.4.7 Write local convenience copies
+
+Write `thoughts/tickets/{issue_id}_{snake_case_subject}.md` (epic summary) and `thoughts/tickets/{issue_id}_decomposition.md` (sub-issue breakdown and dependency graph).
+
+##### 3.5.4.8 Termination
+
+Output summary listing all created sub-issue IDs, titles, dependency status, and unblocked candidates. **Steps 4–7 do NOT run after decomposition.**
+
 
 ### Step 4: Context Extraction For Research
 
@@ -174,7 +315,7 @@ Once the Q&A and scope exploration are complete:
 - [ ] [Manual test step]
 ```
 
-2. Overwrite the issue description with the full ticket content using `linear_save_issue`.
+2. Overwrite the issue description with the full ticket content using the PM skill's overwrite issue description operation.
 3. Save a local convenience copy to `thoughts/tickets/{issue_id}_{snake_case_subject}.md` using the Write tool. This file must never be used as an input by downstream commands.
 
 ### Step 6: Validation And Confirmation
@@ -198,6 +339,6 @@ Update the status to `open` following the label preservation protocol.
 - Clearly define what is in and out of scope.
 - Local convenience copy naming: `thoughts/tickets/{issue_id}_{snake_case_subject}.md`.
 - If information is insufficient, ask clarifying questions.
-- If scope is too broad, suggest breaking into multiple tickets.
+- If scope is too broad and `allow_decomposition` is enabled, Step 3.5 handles decomposition. Do not suggest manually.
 
 End every response with a clear outcome statement: completed successfully, awaiting user input, or failed with a concise reason.

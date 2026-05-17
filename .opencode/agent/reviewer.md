@@ -39,10 +39,10 @@ Detect pathway context:
 
 Load PM configuration:
 - Read `.workbench/settings.yml` to determine the configured project management tool.
-- The PM tool is `linear` (currently the only supported value).
-- Use the Linear MCP tools available globally: `linear_get_issue`, `linear_save_issue`, `linear_get_document`, and `linear_save_document`.
-- Follow the status guard protocol: validate `status-ticket` before proceeding.
-- Follow the label preservation protocol when updating status.
+- Load the corresponding PM skill: `skill({ name: '<value>' })`.
+- Use the PM skill's tool mapping table for all issue and document operations.
+- Follow the status guard protocol from the loaded PM skill.
+- Follow the label preservation protocol from the loaded PM skill.
 
 ## Validation Process
 
@@ -78,7 +78,7 @@ For each phase in the plan:
 
 ### Step 3: Generate Validation Report
 
-Write a local convenience copy to `thoughts/reviews/{issue_id}_{plan_name}_review.md` and create a Linear document titled `Review: {issue_id} - {plan_name}` with the full markdown content.
+Write a local convenience copy to `thoughts/reviews/{issue_id}_{plan_name}_review.md` and create a PM document titled `Review: {issue_id} - {plan_name}` with the full markdown content.
 
 Use this report structure:
 
