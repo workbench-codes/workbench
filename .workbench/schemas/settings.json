@@ -8,7 +8,8 @@
       "description": "The project management tool to use for issue tracking and workflow management",
       "type": "string",
       "enum": [
-        "linear"
+        "linear",
+        "github-issues"
       ]
     },
     "orchestrator": {
