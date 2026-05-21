@@ -30,7 +30,18 @@
   "homepage": "https://workbench.codes",
   "repository": {
     "type": "git",
-    "url": "https://github.com/workbench-codes/workbench",
+    "url": "git+https://github.com/workbench-codes/workbench.git",
     "directory": "packages/workbench-cli"
+  },
+  "description": "Agentic Workbench",
+  "main": "index.js",
+  "keywords": [
+    "ai",
+    "agent",
+    "workbench"
+  ],
+  "author": "Workbench Codes",
+  "bugs": {
+    "url": "https://github.com/workbench-codes/workbench/issues"
   }
 }
