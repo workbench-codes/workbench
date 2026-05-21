@@ -5,7 +5,10 @@
 [![JSR](https://jsr.io/badges/@workbench-codes/workbench)](https://jsr.io/@workbench-codes/workbench)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](../../LICENSE)
 
-A terminal UI for initializing a workbench repository — clone and wire up git submodules interactively or non-interactively.
+## What is Workbench?
+Workbench is a mono-repo template for agentic engineering — it gives teams a consistent environment with structured slash-command workflows for working with AI coding agents.
+
+[Learn more →](https://github.com/workbench-codes/workbench/blob/main/README.md#what-is-workbench)
 
 ## Prerequisites
 

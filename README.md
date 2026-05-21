@@ -1,5 +1,17 @@
 # workbench
 
+## What is Workbench?
+Workbench is a mono-repo template that engineers clone for a consistent, structured development environment. It wires together multiple project repos as git submodules and provides a standard set of slash commands for orchestrating AI coding agents through a defined development workflow.
+
+### Problem 1: Configuration Pollution
+In multi-repo team environments, development configuration — editor settings, linter rules, CI pipelines, git hooks, and sub-agent configuration — drifts out of sync across team members. Each engineer maintains their own ad-hoc setup, leading to inconsistent tooling, broken pipelines, and onboarding friction. Workbench solves this by centralizing all configuration in a single mono-repo template. Engineers clone it and get a complete, consistent environment: `.opencode/` commands and skills, `.workbench/` settings, and standardized tooling are all pre-configured.
+
+### Problem 2: Context Loss
+AI coding agents lose context between sessions. Without a structured workspace, each new session requires re-explaining the project structure, conventions, and active work — wasting time and producing inconsistent results. Workbench gives AI agents a persistent home. Git submodules keep projects organized, issue tracking integration and slash commands maintain workflow state across sessions, and the `.workbench/` and `.opencode/` directories store project-specific configuration that agents reference automatically.
+
+### Problem 3: Agentic SDLC
+Without standardized workflows, each team member interacts with AI coding agents differently — different prompts, different quality gates, different review processes. This leads to uneven code quality and unpredictable delivery. Workbench provides a structured Agentic Software Development Life Cycle (ASDLC) — a pipeline of slash commands (`/ticket`, `/research`, `/plan`, `/execute`, `/review`, `/commit`) that guide every issue through consistent stages, each powered by a dedicated sub-agent with a specific responsibility. The human runs the slash commands; the agents execute the structured workflows.
+
 [![CI](https://github.com/workbench-codes/workbench/actions/workflows/ci-workbench-cli.yml/badge.svg)](https://github.com/workbench-codes/workbench/actions/workflows/ci-workbench-cli.yml)
 [![npm](https://img.shields.io/npm/v/@workbench-codes/workbench)](https://www.npmjs.com/package/@workbench-codes/workbench)
 [![JSR](https://jsr.io/badges/@workbench-codes/workbench)](https://jsr.io/@workbench-codes/workbench)
@@ -46,9 +58,6 @@ workbench --init
 ```
 This launches an interactive flow to fork, clone, and wire up your repositories.
 
-A generic development workbench for setting up and maintaining multiple projects from a single repository.
-
-The repository acts as a hub: engineers fork it, configure their code and resource repositories as submodules, and get a consistent environment across the team.
 
 ## Folder structure
 
