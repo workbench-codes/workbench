@@ -31,6 +31,19 @@ ck availability is the logical AND of the centralised setting and the system che
    * `ck_hybrid_search_available = tools.ck_hybrid_search AND ck_installed_and_ready`
 4. **Pass downstream.** Report each resolved value separately in the pathway-context block injected into spawned agents (see "Context Passing Format" below). When a tool is unavailable, indicate whether it is suppressed by config or unavailable on the system.
 
+### Variable Storage
+
+After completing pathway detection and ck availability checks, store the following named variables for downstream use:
+
+- `pathway_mode` — either `"workbench"` (Pathway 1) or `"configured"` (Pathway 2)
+- `ck_semantic_search_available` — boolean, result of setting AND system check
+- `ck_hybrid_search_available` — boolean, result of setting AND system check
+
+When the command involves project management operations, store these additional variables after PM configuration:
+
+- `pm_tool` — the resolved project management tool name (e.g., `"github-issues"`, `"linear"`)
+- `repo_owner_repo` — the resolved repository in `owner/repo` format for PM tool operations
+
 ## Project Management Configuration
 
 When the command involves project management operations (retrieving issues, updating statuses, creating documents, commit trailers), configure the PM tool:
@@ -40,7 +53,25 @@ When the command involves project management operations (retrieving issues, upda
    > "No project management tool configured. Add `project_management: <tool>` to `.workbench/settings.yml`"
 3. The field value is the name of the PM skill to load
 4. Load the corresponding PM skill: `skill({ name: '<value>' })`
-5. The PM skill provides tool mappings, protocols, and workflow patterns for all PM operations
+5. The PM skill provides tool mappings, protocols, and workflow patterns for all PM operations:
+   - Follow the status guard protocol from the loaded PM skill.
+   - Follow the label preservation protocol from the loaded PM skill.
+   - Use the PM skill's tool mapping table for all issue and document operations.
+
+#### PM Loading Variants
+
+Two modes are available after loading the PM skill:
+
+**Full operations (default)**:
+- Use the PM skill's tool mapping table for all issue, document, and label operations
+- Follow the status guard protocol before any status transition
+- Follow the label preservation protocol when updating issue status
+- Use the PM skill's commit trailer format
+
+**Committer-lite**:
+- Use only the PM skill's commit trailer format
+- Do not perform status transitions, status guard checks, or label preservation
+- The PM skill is loaded to resolve the trailer format only
 
 If the command does not involve project management operations, skip this step.
 
