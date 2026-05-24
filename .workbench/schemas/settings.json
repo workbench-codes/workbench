@@ -126,7 +126,8 @@
           "default": [
             ".opencode",
             ".workbench/schemas",
-            "README.md"
+            "README.md",
+            ".workbench/workflow"
           ]
         }
       },
@@ -135,7 +136,8 @@
         "paths": [
           ".opencode",
           ".workbench/schemas",
-          "README.md"
+          "README.md",
+          ".workbench/workflow"
         ]
       }
     },

@@ -1,12 +1,11 @@
-# yaml-language-server: $schema=./schemas/settings.json
 project_management: github-issues
 orchestrator:
   strategy:
     name: minimum-changes-expandability
     principles:
-      - minimum changes
-      - maximum expandability
-      - do not deliver what is not needed
+    - minimum changes
+    - maximum expandability
+    - do not deliver what is not needed
   escalation:
     escalate_on_blocking: true
     escalate_on_critical: true
@@ -16,6 +15,7 @@ tools:
   ck_hybrid_search: false
 sync:
   paths:
-    - .opencode
-    - .workbench/schemas
-    - README.md
+  - .opencode
+  - .workbench/schemas
+  - README.md
+  - .workbench/workflow
