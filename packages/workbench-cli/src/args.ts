@@ -15,6 +15,8 @@ export interface CliArgs {
   name: string
   noTui: boolean
   sync: boolean
+  addHarness?: string
+  removeHarness?: string
 }
 
 export function parseCliArgs(): CliArgs {
@@ -34,6 +36,8 @@ export function parseCliArgs(): CliArgs {
       name: { type: "string", default: "workbench" },
       "no-tui": { type: "boolean", default: false },
       sync: { type: "boolean", default: false },
+      "add-harness": { type: "string" },
+      "remove-harness": { type: "string" },
     },
     strict: true,
     allowPositionals: false,
@@ -54,6 +58,8 @@ export function parseCliArgs(): CliArgs {
     name: values.name as string,
     noTui: values["no-tui"] as boolean,
     sync: values.sync as boolean,
+    addHarness: values["add-harness"] as string | undefined,
+    removeHarness: values["remove-harness"] as string | undefined,
   }
 }
 
@@ -81,6 +87,8 @@ OPTIONS:
   --resource-branch <name>        Branch for all resource repositories (default: main)
   --index <on|off>                Run indexing after init (default: on)
   --sync                          Sync workbench files from the source repository
+  --add-harness <harness>        Add harness support (e.g., claude-code)
+  --remove-harness <harness>     Remove harness support (e.g., claude-code)
   --tui                           Launch interactive TUI mode
   --help                          Display this help message
 

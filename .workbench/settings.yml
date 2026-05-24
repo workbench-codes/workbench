@@ -16,6 +16,7 @@ tools:
 sync:
   paths:
   - .opencode
+  - .claude
   - .workbench/schemas
   - README.md
   - .workbench/workflow

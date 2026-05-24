@@ -125,6 +125,7 @@
           "minItems": 1,
           "default": [
             ".opencode",
+            ".claude",
             ".workbench/schemas",
             "README.md",
             ".workbench/workflow"
@@ -135,6 +136,7 @@
       "default": {
         "paths": [
           ".opencode",
+          ".claude",
           ".workbench/schemas",
           "README.md",
           ".workbench/workflow"

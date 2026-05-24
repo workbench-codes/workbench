@@ -7,6 +7,7 @@ import { showMainMenu } from "./screens/mainMenu.ts"
 import { runInitFlow, executeInit, type InitState, type InitProgress } from "./commands/init.ts"
 import { executeInitialise, executeCreateRemote, validateInitialiseState, runInitialiseFlow, type InitialiseState } from "./commands/initialise.ts"
 import { executeSync } from "./commands/sync.ts"
+import { executeAddHarness, executeRemoveHarness } from "./commands/harness.ts"
 import { parseCliArgs, printHelp, type CliArgs } from "./args.ts"
 import { buildRepoFromUrl } from "./utils/repo.ts"
 import type { Repo } from "./screens/repoSelect.ts"
@@ -14,12 +15,16 @@ import { theme, detectMode } from "./theme"
 
 const args = parseCliArgs()
 
-if (args.help || process.argv.length === 2) {
+if (args.help || (process.argv.length === 2 && !args.addHarness && !args.removeHarness)) {
   printHelp()
   process.exit(0)
 }
 
-if (args.sync) {
+if (args.addHarness) {
+  void runAddHarness(args)
+} else if (args.removeHarness) {
+  void runRemoveHarness(args)
+} else if (args.sync) {
   void runSync(args)
 } else if (args.init) {
   if (args.noTui) {
@@ -43,6 +48,34 @@ async function runSync(args: CliArgs): Promise<void> {
     process.exit(1)
   }
 
+  process.exit(0)
+}
+
+async function runAddHarness(args: CliArgs): Promise<void> {
+  const result = await executeAddHarness(args.addHarness!)
+  if (result.success) {
+    console.log(`Harness '${args.addHarness}' added:`)
+    result.created?.forEach((path) => console.log(`  ${path}`))
+  } else {
+    console.error(result.error || `Failed to add harness '${args.addHarness}'`)
+    process.exit(1)
+  }
+  process.exit(0)
+}
+
+async function runRemoveHarness(args: CliArgs): Promise<void> {
+  const result = await executeRemoveHarness(args.removeHarness!)
+  if (result.success) {
+    if (result.removed && result.removed.length > 0) {
+      console.log(`Harness '${args.removeHarness}' removed:`)
+      result.removed.forEach((path) => console.log(`  ${path}`))
+    } else {
+      console.log(`No harness '${args.removeHarness}' found (nothing to remove)`)
+    }
+  } else {
+    console.error(result.error || `Failed to remove harness '${args.removeHarness}'`)
+    process.exit(1)
+  }
   process.exit(0)
 }
 

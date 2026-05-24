@@ -8,6 +8,7 @@ import { showExecutingScreen } from "../screens/executing.ts"
 import { showSourceInput } from "../screens/initSourceInput.ts"
 import { showRemotePrompt } from "../screens/initRemotePrompt.ts"
 import { showRemoteNameInput } from "../screens/initRemoteNameInput.ts"
+import { showHarnessPrompt } from "../screens/harnessPrompt.ts"
 import { writeSourceConfig } from "../utils/config.ts"
 import type { InitProgress } from "./init.ts"
 import type { CliRenderer } from "@opentui/core"
@@ -173,7 +174,15 @@ export function runInitialiseFlow(
                     setTimeout(() => {
                       showInitSetupPrompt(renderer, (shouldSetup) => {
                         if (shouldSetup) {
-                          void runTuiSetupAfterInit(renderer, onComplete)
+                          setTimeout(() => {
+                            showHarnessPrompt(renderer, (shouldAddHarness) => {
+                              if (shouldAddHarness) {
+                                void runTuiSetupAfterInitWithHarness(renderer, onComplete)
+                              } else {
+                                void runTuiSetupAfterInit(renderer, onComplete)
+                              }
+                            })
+                          }, 0)
                         } else {
                           console.log("\nTo set up your workbench later, run: workbench --tui")
                           renderer.destroy()
@@ -186,7 +195,15 @@ export function runInitialiseFlow(
                   setTimeout(() => {
                     showInitSetupPrompt(renderer, (shouldSetup) => {
                       if (shouldSetup) {
-                        void runTuiSetupAfterInit(renderer, onComplete)
+                        setTimeout(() => {
+                          showHarnessPrompt(renderer, (shouldAddHarness) => {
+                            if (shouldAddHarness) {
+                              void runTuiSetupAfterInitWithHarness(renderer, onComplete)
+                            } else {
+                              void runTuiSetupAfterInit(renderer, onComplete)
+                            }
+                          })
+                        }, 0)
                       } else {
                         console.log("\nTo set up your workbench later, run: workbench --tui")
                         renderer.destroy()
@@ -281,5 +298,19 @@ async function runTuiSetupAfterInit(
   const { runInitFlow } = await import("./init.ts")
   runInitFlow(renderer, (_success) => {
     onComplete()
+  })
+}
+
+async function runTuiSetupAfterInitWithHarness(
+  renderer: CliRenderer,
+  onComplete: () => void
+): Promise<void> {
+  const { runInitFlow } = await import("./init.ts")
+  runInitFlow(renderer, (_success) => {
+    import("./harness.ts").then(({ executeAddHarness }) => {
+      executeAddHarness("claude-code").then(() => {
+        onComplete()
+      })
+    })
   })
 }
