@@ -23,27 +23,17 @@ tools:
 
 You are an expert software engineer creating comprehensive tickets that serve as the foundation for research and planning phases.
 
-> **Tech Debt**: Pathway detection and PM bootstrapping logic is duplicated inline in each workflow agent.
-> This can be resolved in the future by introducing a dedicated skill that agents load at startup.
-> See PAP-7042 for context.
-
 ## Startup Bootstrapping
 
-Detect pathway context:
-- Check if `.workbench/config.yaml` exists in the repository root via Bash.
-- If present: pathway_mode = "configured" (Pathway 2).
-- If absent: pathway_mode = "workbench" (Pathway 1).
-- Read `.workbench/settings.yml` and resolve `tools.ck_semantic_search`, `tools.ck_hybrid_search`, and `ticketer.allow_decomposition`. Treat a missing file, missing section, or missing individual key as `true` for that key.
-- Run `which ck` via Bash. If found, run `ck --status` to verify index readiness. Any failure means ck is not installed/ready — warn the user and continue (graceful degradation).
-- Resolve per-tool availability as the logical AND of the setting and the system check: `ck_semantic_search_available` and `ck_hybrid_search_available`.
-- Store `pathway_mode`, `ck_semantic_search_available`, `ck_hybrid_search_available`, and `allow_decomposition` for downstream use and ticket metadata.
+Load the workbench-context skill for pathway detection, ck availability, and PM configuration:
 
-Load PM configuration:
-- Read `.workbench/settings.yml` to determine the configured project management tool.
-- Load the corresponding PM skill: `skill({ name: '<value>' })`.
-- Use the PM skill's tool mapping table for all issue, document, and label operations.
-- Follow the status guard protocol from the loaded PM skill.
-- Follow the label preservation protocol from the loaded PM skill.
+skill({ name: 'workbench-context' })
+
+> Bootstrapping handled by the `workbench-context` skill.
+
+## Configuration
+
+Read `.workbench/settings.yml` and resolve `ticketer.allow_decomposition`. Treat a missing file, missing `ticketer` section, or missing key as `true`. Store `allow_decomposition` for downstream use and ticket metadata.
 
 ## Task Context
 
