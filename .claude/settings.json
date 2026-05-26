@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "ck": {
+      "type": "stdio",
+      "command": "ck",
+      "args": ["--serve"]
+    },
+    "linear": {
+      "type": "sse",
+      "url": "https://mcp.linear.app/mcp"
+    }
+  }
+}

@@ -70,16 +70,13 @@ This launches an interactive flow to fork, clone, and wire up your repositories.
 | `scripts/` | Placeholder for helper scripts |
 | `thoughts/` | Planning notes, research, and ticket documentation (Not checked in) |
 
-## Working on issues with OpenCode
+## Working on issues
 
-> [!NOTE]
-> At the moment only OpenCode is supported. Support for ClaudeCode will be added soon.
-
-Once your workbench is set up, the primary way to work on issues is through [OpenCode](https://opencode.ai/) using the built-in slash commands. These commands implement a structured flow from issue analysis through to review.
+Once your workbench is set up, work on issues using the built-in slash commands in either [OpenCode](https://opencode.ai/) or [Claude Code](https://claude.ai/code). Both implement the same structured flow from issue analysis through to review.
 
 ### Prerequisites
 
-- [OpenCode](https://opencode.ai/) installed
+- [OpenCode](https://opencode.ai/) or [Claude Code](https://claude.ai/code) installed
 - A configured project management tool (see [Project Management](#project-management) below)
 
 ### The development flow
