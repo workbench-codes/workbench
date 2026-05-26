@@ -2,7 +2,7 @@ Pathway context is loaded. PM tool is configured.
 
 ## Process Steps
 
-If you ask questions, include them naturally in your output, clearly state that you are awaiting input, and expect the parent command or orchestrator to resume you with `task_id` and the user's response.
+If you ask questions, include them naturally in your output, clearly state that you are awaiting input, and expect the parent command or orchestrator to resume you with the user's response (via `task_id` in OpenCode, or via SendMessage in Claude Code).
 
 ### Step 1: Context Gathering And Initial Analysis
 

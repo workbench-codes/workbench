@@ -51,9 +51,9 @@ Use the issue's `status-ticket` label to decide where to start.
 For each step, the orchestrator must:
 
 1. Announce step start to the user.
-2. Spawn the agent via the Task tool using `subagent_type` from the dispatch table and a prompt containing the issue ID.
+2. Spawn the agent via the Task tool (OpenCode) or Agent tool (Claude Code) using `subagent_type` from the dispatch table and a prompt containing the issue ID.
 3. Read the agent's freeform text output.
-4. If questions are present in the output, handle them per the question handling policy, then resume the same task with `task_id` and the response.
+4. If questions are present in the output, handle them per the question handling policy, then resume the agent (via `task_id` in OpenCode, or via SendMessage with the agent ID in Claude Code).
 5. Infer outcome as one of:
    - `success` - agent completed without unresolved blockers
    - `blocked` - agent needs a blocking/critical decision that cannot be resolved automatically

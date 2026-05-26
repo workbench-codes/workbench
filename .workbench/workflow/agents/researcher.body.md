@@ -4,7 +4,7 @@ Pathway context is loaded. PM tool is configured.
 
 The user provides an issue ID. Fetch the ticket and research the codebase accordingly.
 
-If the Task tool is available, use the 3-phase agent pipeline. If it is not available despite frontmatter, perform the research directly using read/grep/glob tools and explain the fallback.
+If the Task tool (OpenCode) or Agent tool (Claude Code) is available, use the 3-phase agent pipeline. If neither is available, perform the research directly using read/grep/glob tools and explain the fallback.
 
 ### Step 1: Check Status And Fetch Ticket
 
